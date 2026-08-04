@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 980" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="pbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2323"/>
+      <stop offset="0.55" stop-color="#111111"/>
+      <stop offset="1" stop-color="#342619"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="28%" r="50%">
+      <stop offset="0" stop-color="#c8a96a" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#c8a96a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="760" height="980" fill="url(#pbg)"/>
+  <rect width="760" height="980" fill="url(#halo)"/>
+  <path d="M146 190 H612 V762 H146 Z" fill="#0b0d0e" opacity="0.48"/>
+  <path d="M208 250 H552 V684 H208 Z" fill="#20201c" opacity="0.64"/>
+  <circle cx="380" cy="344" r="92" fill="#d7c3a0" opacity="0.46"/>
+  <path d="M238 746 C266 564 494 564 522 746 Z" fill="#c8a96a" opacity="0.26"/>
+  <path d="M188 824 H572" stroke="#f2efe8" stroke-opacity="0.16"/>
+  <path d="M188 190 V824 M572 190 V824" stroke="#8fb8bd" stroke-opacity="0.18"/>
+</svg>

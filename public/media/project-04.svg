@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" preserveAspectRatio="xMidYMid slice">
+  <rect width="1100" height="780" fill="#0c0c0d"/>
+  <path d="M0 600 L1100 512 V780 H0 Z" fill="#241f1b"/>
+  <path d="M0 0 H1100 V512 L0 600 Z" fill="#171a1b"/>
+  <path d="M122 120 H478 V528 H122 Z" fill="#242a28"/>
+  <path d="M540 64 H980 V492 H540 Z" fill="#111212"/>
+  <path d="M596 124 H920 V430 H596 Z" fill="#312920"/>
+  <path d="M168 172 H432 V484 H168 Z" fill="#0a0b0b"/>
+  <path d="M210 224 H390 V432 H210 Z" fill="#263331"/>
+  <g fill="#c8a96a" opacity="0.24">
+    <rect x="686" y="188" width="144" height="16"/>
+    <rect x="686" y="232" width="186" height="16"/>
+    <rect x="686" y="276" width="108" height="16"/>
+  </g>
+</svg>

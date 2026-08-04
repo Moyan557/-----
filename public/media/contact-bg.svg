@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="cbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#060707"/>
+      <stop offset="0.55" stop-color="#101516"/>
+      <stop offset="1" stop-color="#2b2119"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#cbg)"/>
+  <path d="M880 0 H1920 V1080 H1280 Z" fill="#0b0d0e" opacity="0.72"/>
+  <path d="M1020 188 H1720 V760 H1020 Z" fill="#1c1b18" opacity="0.76"/>
+  <path d="M1088 252 H1652 V694 H1088 Z" fill="#29302d" opacity="0.42"/>
+  <g stroke="#f2efe8" stroke-opacity="0.1">
+    <path d="M1088 360 H1652"/>
+    <path d="M1088 492 H1652"/>
+    <path d="M1088 624 H1652"/>
+    <path d="M1230 252 V694"/>
+    <path d="M1430 252 V694"/>
+  </g>
+  <path d="M0 804 C420 680 786 704 1180 778 C1448 828 1678 820 1920 760 V1080 H0 Z" fill="#1b1511" opacity="0.86"/>
+</svg>
