@@ -1704,9 +1704,9 @@ a {
     bottom: auto;
     width: 100%;
     height: min(58svh, 430px);
-    margin-top: -4px;
+    margin-top: 8px;
     transform: none;
-    background-position: center bottom;
+    background-position: center top;
     filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.44));
   }
 
