@@ -1475,3 +1475,406 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 767px) {
+  body {
+    min-width: 0;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 8% 4%, rgba(143, 184, 189, 0.12), transparent 20rem),
+      radial-gradient(circle at 90% 36%, rgba(200, 169, 106, 0.11), transparent 22rem),
+      #08090a;
+  }
+
+  .shell {
+    width: min(calc(100% - 32px), 100%);
+  }
+
+  .site-header,
+  .site-header.is-floating {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    grid-template-columns: 1fr auto;
+    gap: 10px 12px;
+    padding: 11px 12px;
+    border-radius: 22px;
+    transform: translateY(var(--header-y, 0));
+  }
+
+  .brand {
+    min-width: 0;
+    padding-left: 22px;
+    font-size: 12px;
+  }
+
+  .brand::before {
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .brand small {
+    font-size: 8px;
+  }
+
+  .header-contact {
+    min-height: 34px;
+    padding: 0 13px;
+    font-size: 11px;
+  }
+
+  .nav {
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: 100%;
+    min-height: 34px;
+    gap: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav a {
+    min-height: 26px;
+    padding: 0 11px;
+    white-space: nowrap;
+  }
+
+  .hero {
+    height: 100svh;
+    min-height: 680px;
+  }
+
+  .hero-beams {
+    height: 520px;
+    opacity: 0.58;
+  }
+
+  .hero-layout {
+    height: 100svh;
+    min-height: 680px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 22px;
+    padding: 146px 0 28px;
+  }
+
+  .hero-main-copy {
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .hero-tag {
+    margin-bottom: 16px;
+    font-size: 11px;
+  }
+
+  .hero .hero-main-copy h1 {
+    max-width: 100%;
+    font-size: clamp(42px, 13vw, 62px);
+    line-height: 1.02;
+  }
+
+  .hero-service-card {
+    width: 100%;
+    margin-bottom: 0;
+    padding-top: 2px;
+  }
+
+  .hero-service-card p {
+    margin-bottom: 10px;
+    font-size: 11px;
+  }
+
+  .hero-service-card h2 {
+    font-size: 24px;
+  }
+
+  .hero-service-card ul {
+    gap: 5px;
+    margin: 15px 0 18px;
+  }
+
+  .hero-service-card li {
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    gap: 8px;
+  }
+
+  .hero-primary,
+  .hero-secondary {
+    min-height: 36px;
+    padding: 0 15px;
+    font-size: 12px;
+  }
+
+  .hero-phase-row {
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 14px;
+    font-size: 11px;
+  }
+
+  .hero-phase-row span {
+    min-height: 24px;
+    padding-top: 10px;
+  }
+
+  .below-hero-grainient,
+  .below-hero-surface::before {
+    height: 100svh;
+    margin-bottom: -100svh;
+  }
+
+  .section {
+    padding: 84px 0;
+  }
+
+  .section-motion-title {
+    margin-bottom: -10px;
+    font-size: clamp(56px, 18vw, 92px);
+    line-height: 0.88;
+  }
+
+  .profile {
+    height: auto;
+    min-height: 100svh;
+    align-items: stretch;
+    padding: 92px 0 56px;
+  }
+
+  .profile-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    gap: 22px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .profile-copy {
+    order: 1;
+    max-width: none;
+    padding-top: 96px;
+    transform: none;
+  }
+
+  .profile-motion-title {
+    font-size: clamp(68px, 22vw, 112px);
+    line-height: 0.86;
+  }
+
+  .profile-copy h2,
+  .section-heading h2,
+  .contact-end h2 {
+    font-size: 31px;
+    line-height: 1.16;
+  }
+
+  .profile-copy p:not(.section-kicker) {
+    max-width: none;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .contact-lines {
+    gap: 8px;
+  }
+
+  .contact-lines a,
+  .contact-lines span {
+    min-height: 30px;
+    font-size: 12px;
+  }
+
+  .portrait-panel {
+    order: 2;
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: min(58svh, 430px);
+    margin-top: -4px;
+    transform: none;
+    background-position: center bottom;
+    filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.44));
+  }
+
+  .profile-signature {
+    position: relative;
+    order: 3;
+    right: auto;
+    bottom: auto;
+    align-self: center;
+    z-index: 4;
+    margin-top: -86px;
+    margin-bottom: 28px;
+    font-size: 40px;
+  }
+
+  .stats-grid {
+    order: 4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: -8px;
+    transform: none;
+  }
+
+  .stat {
+    min-height: 78px;
+    padding: 14px;
+  }
+
+  .stat strong {
+    font-size: 23px;
+  }
+
+  .stat span {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+
+  .section-heading,
+  .section-heading.wide {
+    display: block;
+    margin-bottom: 28px;
+  }
+
+  .section-heading p:not(.section-kicker) {
+    max-width: none;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .project-grid,
+  .strength-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .project-card,
+  .project-card .border-glow-inner {
+    min-height: 430px;
+  }
+
+  .project-info {
+    left: 18px;
+    right: 18px;
+    bottom: 20px;
+  }
+
+  .project-info h3 {
+    font-size: 25px;
+  }
+
+  .project-info p {
+    font-size: 13px;
+  }
+
+  .strength-card {
+    min-height: 220px;
+    padding: 24px;
+  }
+
+  .strength-card h3 {
+    margin-top: 34px;
+    font-size: 22px;
+  }
+
+  .strength-card p {
+    font-size: 14px;
+  }
+
+  .contact-end {
+    min-height: 100svh;
+    padding: 96px 0 64px;
+  }
+
+  .contact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    align-items: stretch;
+  }
+
+  .contact-end h2 {
+    max-width: none;
+    font-size: 34px;
+  }
+
+  .contact-panel {
+    padding: 24px;
+  }
+
+  .contact-panel a {
+    font-size: 19px;
+    overflow-wrap: anywhere;
+  }
+
+  .gallery-modal {
+    padding: 12px;
+  }
+
+  .gallery-viewer {
+    width: 100%;
+    max-height: calc(100svh - 24px);
+    border-radius: 8px;
+  }
+
+  .gallery-floating-actions {
+    top: 12px;
+    right: 12px;
+  }
+
+  .gallery-count {
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .gallery-floating-actions button {
+    min-height: 34px;
+    padding: 0 12px;
+  }
+
+  .gallery-image-wrap img {
+    max-height: calc(100svh - 162px);
+  }
+
+  .gallery-arrow {
+    top: auto;
+    bottom: 18px;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 12px;
+    transform: none;
+  }
+
+  .gallery-footer {
+    display: block;
+    padding: 12px;
+  }
+
+  .gallery-footer p {
+    display: none;
+  }
+
+  .gallery-thumbs {
+    max-width: 100%;
+  }
+
+  .gallery-thumbs button {
+    width: 66px;
+    height: 46px;
+  }
+}

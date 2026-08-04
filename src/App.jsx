@@ -40,6 +40,7 @@ function App() {
 
       context = gsap.context(() => {
       gsap.defaults({ force3D: true });
+      const isCompact = window.matchMedia('(max-width: 767px)').matches;
 
       gsap.set('.opening-panel', { scaleY: 1, transformOrigin: 'top center' });
       gsap.set('.site-header', { '--header-y': '-36px', autoAlpha: 0 });
@@ -115,8 +116,8 @@ function App() {
           gsap.fromTo(
             sectionTitle,
             {
-              y: 170,
-              scaleX: 0.72,
+              y: isCompact ? 84 : 170,
+              scaleX: isCompact ? 0.86 : 0.72,
               skewY: 3,
               autoAlpha: 0,
               transformOrigin: 'left center',
@@ -141,7 +142,7 @@ function App() {
           gsap.fromTo(
             cards,
             {
-              y: 88,
+              y: isCompact ? 46 : 88,
               autoAlpha: 0,
               clipPath: 'inset(18% 0% 0% 0%)',
             },
