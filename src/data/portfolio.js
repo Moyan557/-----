@@ -59,6 +59,14 @@ export const projects = [
     image: mediaPath('media/portfolio/yunqifengming/cover.jpg'),
     gallery: createGallery('yunqifengming', 19),
   },
+  {
+    name: '宜和东方合院',
+    meta: '现代合院 / 全案设计',
+    desc: '以通透挑空、天窗引光与石材金属质感，串联会客、餐叙与静谧卧室，呈现现代合院的雅致层次。',
+    tone: 'project-a',
+    image: mediaPath('media/portfolio/yihedongfang/cover.jpg'),
+    gallery: createGallery('yihedongfang', 19),
+  },
 ];
 
 export const strengths = [
