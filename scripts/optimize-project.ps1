@@ -77,7 +77,10 @@ function Save-OptimizedJpeg {
 
 $images = Get-ChildItem -LiteralPath $sourcePath -File |
   Where-Object { $_.Extension -match '^\.(jpg|jpeg|png)$' } |
-  Sort-Object Name
+  Sort-Object @{ Expression = {
+    $number = 0
+    if ([int]::TryParse($_.BaseName, [ref]$number)) { $number } else { [int]::MaxValue }
+  } }, Name
 
 if ($images.Count -eq 0) {
   throw "No jpg/jpeg/png files found in $sourcePath"

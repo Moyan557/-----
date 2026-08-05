@@ -52,10 +52,12 @@ export const projects = [
     gallery: createGallery('jiuhefu', 19),
   },
   {
-    name: '敬请期待',
-    meta: 'X X X',
-    desc: 'X X X X X X',
+    name: '云栖凤鸣',
+    meta: '现代自然别墅 / 室内全案',
+    desc: '以温润木色、天然石材与庭院绿意，营造通透而沉静的现代东方居所。',
     tone: 'project-d',
+    image: mediaPath('media/portfolio/yunqifengming/cover.jpg'),
+    gallery: createGallery('yunqifengming', 19),
   },
 ];
 
