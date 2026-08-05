@@ -1097,9 +1097,14 @@ a {
   position: relative;
   z-index: 1;
   width: min(1640px, 100%);
+  min-width: 0;
+  height: min(920px, calc(100vh - 48px));
+  height: min(920px, calc(100dvh - 48px));
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -1114,6 +1119,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  min-width: 0;
   padding: 14px 20px 16px;
 }
 
@@ -1162,16 +1168,22 @@ a {
 .gallery-image-wrap {
   position: relative;
   min-height: 0;
+  min-width: 0;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: #050607;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 .gallery-image-wrap img {
-  width: 100%;
-  height: 100%;
-  max-height: calc(100vh - 148px);
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   display: block;
   pointer-events: none;
@@ -1183,6 +1195,7 @@ a {
 .gallery-arrow {
   position: absolute;
   top: 50%;
+  z-index: 3;
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
@@ -1221,12 +1234,16 @@ a {
 .gallery-thumbs {
   display: flex;
   gap: 10px;
+  min-width: 0;
   max-width: 560px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(200, 169, 106, 0.36) rgba(255, 255, 255, 0.045);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .gallery-thumbs::-webkit-scrollbar {
@@ -1251,6 +1268,7 @@ a {
   overflow: hidden;
   border-radius: 6px;
   opacity: 0.5;
+  scroll-snap-align: center;
 }
 
 .gallery-thumbs button.is-active {
@@ -1906,7 +1924,8 @@ a {
 
   .gallery-viewer {
     width: 100%;
-    max-height: calc(100svh - 24px);
+    height: calc(100svh - 24px);
+    max-height: none;
     border-radius: 8px;
   }
 
@@ -1927,16 +1946,35 @@ a {
   }
 
   .gallery-image-wrap img {
-    max-height: calc(100svh - 162px);
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .gallery-image-wrap {
+    padding: 48px 46px 12px;
   }
 
   .gallery-arrow {
-    top: auto;
-    bottom: 18px;
-    min-height: 36px;
-    padding: 0 12px;
-    font-size: 12px;
-    transform: none;
+    top: 50%;
+    bottom: auto;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    font-size: 0;
+    transform: translateY(-50%);
+  }
+
+  .gallery-arrow::before {
+    width: 8px;
+    height: 8px;
+    border-top: 1px solid currentColor;
+    border-left: 1px solid currentColor;
+    content: "";
+    transform: rotate(-45deg);
+  }
+
+  .gallery-arrow.next::before {
+    transform: rotate(135deg);
   }
 
   .gallery-footer {
@@ -1949,7 +1987,10 @@ a {
   }
 
   .gallery-thumbs {
+    width: 100%;
     max-width: 100%;
+    gap: 8px;
+    padding: 2px 0 6px;
   }
 
   .gallery-thumbs button {

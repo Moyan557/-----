@@ -22,6 +22,8 @@ function App() {
   const [isHeaderPinned, setIsHeaderPinned] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const galleryThumbsRef = useRef(null);
+  const galleryGestureStartRef = useRef(null);
 
   useEffect(() => {
     const root = mainRef.current;
@@ -243,10 +245,49 @@ function App() {
     };
   }, [activeProject]);
 
+  useEffect(() => {
+    if (!activeProject || !galleryThumbsRef.current) return;
+
+    const activeThumb = galleryThumbsRef.current.querySelector('.is-active');
+    activeThumb?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeProject, activeImageIndex]);
+
   const openProjectGallery = (project) => {
     if (!project.gallery?.length) return;
     setActiveProject(project);
     setActiveImageIndex(0);
+  };
+
+  const goToPreviousImage = () => {
+    if (!activeProject?.gallery?.length) return;
+    setActiveImageIndex((index) => (index - 1 + activeProject.gallery.length) % activeProject.gallery.length);
+  };
+
+  const goToNextImage = () => {
+    if (!activeProject?.gallery?.length) return;
+    setActiveImageIndex((index) => (index + 1) % activeProject.gallery.length);
+  };
+
+  const handleGalleryPointerStart = (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    galleryGestureStartRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleGalleryPointerEnd = (event) => {
+    const start = galleryGestureStartRef.current;
+    galleryGestureStartRef.current = null;
+    if (!start || start.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+    if (deltaX < 0) {
+      goToNextImage();
+    } else {
+      goToPreviousImage();
+    }
   };
 
   return (
@@ -548,7 +589,14 @@ function App() {
                 关闭
               </button>
             </div>
-            <div className="gallery-image-wrap">
+            <div
+              className="gallery-image-wrap"
+              onPointerDown={handleGalleryPointerStart}
+              onPointerUp={handleGalleryPointerEnd}
+              onPointerCancel={() => {
+                galleryGestureStartRef.current = null;
+              }}
+            >
               <img
                 src={activeProject.gallery[activeImageIndex].full}
                 alt={`${activeProject.name}项目图 ${activeImageIndex + 1}`}
@@ -559,16 +607,16 @@ function App() {
                   <button
                     className="gallery-arrow prev"
                     type="button"
-                    onClick={() =>
-                      setActiveImageIndex((index) => (index - 1 + activeProject.gallery.length) % activeProject.gallery.length)
-                    }
+                    aria-label="上一张"
+                    onClick={goToPreviousImage}
                   >
                     上一张
                   </button>
                   <button
                     className="gallery-arrow next"
                     type="button"
-                    onClick={() => setActiveImageIndex((index) => (index + 1) % activeProject.gallery.length)}
+                    aria-label="下一张"
+                    onClick={goToNextImage}
                   >
                     下一张
                   </button>
@@ -577,7 +625,7 @@ function App() {
             </div>
             <div className="gallery-footer">
               <p>{activeProject.desc}</p>
-              <div className="gallery-thumbs">
+              <div className="gallery-thumbs" ref={galleryThumbsRef}>
                 {activeProject.gallery.map((image, index) => (
                   <button
                     className={index === activeImageIndex ? 'is-active' : ''}
