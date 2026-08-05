@@ -22,8 +22,17 @@ function App() {
   const [isHeaderPinned, setIsHeaderPinned] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [galleryZoom, setGalleryZoom] = useState(1);
+  const [galleryPan, setGalleryPan] = useState({ x: 0, y: 0 });
   const galleryThumbsRef = useRef(null);
+  const galleryImageRef = useRef(null);
+  const galleryImageWrapRef = useRef(null);
+  const galleryZoomRef = useRef(1);
+  const galleryPanRef = useRef({ x: 0, y: 0 });
+  const galleryPointersRef = useRef(new Map());
   const galleryGestureStartRef = useRef(null);
+  const galleryPanStartRef = useRef(null);
+  const galleryPinchStartRef = useRef(null);
 
   useEffect(() => {
     const root = mainRef.current;
@@ -236,11 +245,15 @@ function App() {
       }
     };
 
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [activeProject]);
@@ -256,28 +269,121 @@ function App() {
     if (!project.gallery?.length) return;
     setActiveProject(project);
     setActiveImageIndex(0);
+    galleryZoomRef.current = 1;
+    galleryPanRef.current = { x: 0, y: 0 };
+    setGalleryZoom(1);
+    setGalleryPan({ x: 0, y: 0 });
   };
+
+  const clampZoom = (value) => Math.min(3, Math.max(1, value));
+
+  const clampPan = (value, zoom) => {
+    const image = galleryImageRef.current;
+    const wrap = galleryImageWrapRef.current;
+    if (!image || !wrap) return value;
+
+    const maxX = Math.max(0, (image.offsetWidth * zoom - wrap.clientWidth) / 2);
+    const maxY = Math.max(0, (image.offsetHeight * zoom - wrap.clientHeight) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, value.x)),
+      y: Math.min(maxY, Math.max(-maxY, value.y)),
+    };
+  };
+
+  const updateGalleryView = (nextZoom, nextPan = galleryPanRef.current) => {
+    const zoom = clampZoom(nextZoom);
+    const pan = clampPan(nextPan, zoom);
+    galleryZoomRef.current = zoom;
+    galleryPanRef.current = pan;
+    setGalleryZoom(zoom);
+    setGalleryPan(pan);
+  };
+
+  const resetGalleryView = () => updateGalleryView(1, { x: 0, y: 0 });
+
+  const zoomGallery = (amount) => updateGalleryView(galleryZoomRef.current + amount);
 
   const goToPreviousImage = () => {
     if (!activeProject?.gallery?.length) return;
+    resetGalleryView();
     setActiveImageIndex((index) => (index - 1 + activeProject.gallery.length) % activeProject.gallery.length);
   };
 
   const goToNextImage = () => {
     if (!activeProject?.gallery?.length) return;
+    resetGalleryView();
     setActiveImageIndex((index) => (index + 1) % activeProject.gallery.length);
+  };
+
+  const getPointerDistance = (pointers) => {
+    const points = Array.from(pointers.values());
+    if (points.length < 2) return 0;
+    return Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
   };
 
   const handleGalleryPointerStart = (event) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
-    galleryGestureStartRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    const pointers = galleryPointersRef.current;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     event.currentTarget.setPointerCapture?.(event.pointerId);
+
+    if (pointers.size === 1) {
+      galleryGestureStartRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+      galleryPanStartRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        pan: galleryPanRef.current,
+      };
+    } else if (pointers.size === 2) {
+      galleryGestureStartRef.current = null;
+      galleryPinchStartRef.current = {
+        distance: getPointerDistance(pointers),
+        zoom: galleryZoomRef.current,
+        pan: galleryPanRef.current,
+      };
+    }
+  };
+
+  const handleGalleryPointerMove = (event) => {
+    const pointers = galleryPointersRef.current;
+    if (!pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.size >= 2 && galleryPinchStartRef.current) {
+      const pinch = galleryPinchStartRef.current;
+      const distance = getPointerDistance(pointers);
+      if (pinch.distance > 0 && distance > 0) {
+        updateGalleryView(pinch.zoom * (distance / pinch.distance), pinch.pan);
+      }
+      return;
+    }
+
+    if (galleryZoomRef.current <= 1 || pointers.size !== 1 || !galleryPanStartRef.current) return;
+    const panStart = galleryPanStartRef.current;
+    updateGalleryView(galleryZoomRef.current, {
+      x: panStart.pan.x + event.clientX - panStart.x,
+      y: panStart.pan.y + event.clientY - panStart.y,
+    });
   };
 
   const handleGalleryPointerEnd = (event) => {
+    const pointers = galleryPointersRef.current;
+    const wasPinching = pointers.size >= 2 || Boolean(galleryPinchStartRef.current);
+    pointers.delete(event.pointerId);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+
+    if (wasPinching) {
+      galleryGestureStartRef.current = null;
+      galleryPanStartRef.current = null;
+      galleryPinchStartRef.current = null;
+      return;
+    }
+
     const start = galleryGestureStartRef.current;
     galleryGestureStartRef.current = null;
+    galleryPanStartRef.current = null;
     if (!start || start.pointerId !== event.pointerId) return;
+    if (galleryZoomRef.current > 1) return;
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
@@ -288,6 +394,18 @@ function App() {
     } else {
       goToPreviousImage();
     }
+  };
+
+  const handleGalleryPointerCancel = (event) => {
+    galleryPointersRef.current.delete(event.pointerId);
+    galleryGestureStartRef.current = null;
+    galleryPanStartRef.current = null;
+    galleryPinchStartRef.current = null;
+  };
+
+  const handleGalleryWheel = (event) => {
+    event.preventDefault();
+    zoomGallery(event.deltaY < 0 ? 0.15 : -0.15);
   };
 
   return (
@@ -585,20 +703,41 @@ function App() {
               <strong className="gallery-count">
                 {activeImageIndex + 1} / {activeProject.gallery.length}
               </strong>
+              <div className="gallery-zoom-controls" aria-label="图片缩放">
+                <button type="button" aria-label="缩小图片" disabled={galleryZoom <= 1} onClick={() => zoomGallery(-0.25)}>
+                  -
+                </button>
+                <span className="gallery-zoom-level">{Math.round(galleryZoom * 100)}%</span>
+                <button type="button" aria-label="放大图片" disabled={galleryZoom >= 3} onClick={() => zoomGallery(0.25)}>
+                  +
+                </button>
+                <button
+                  type="button"
+                  aria-label="重置图片缩放"
+                  disabled={galleryZoom === 1 && galleryPan.x === 0 && galleryPan.y === 0}
+                  onClick={resetGalleryView}
+                >
+                  1:1
+                </button>
+              </div>
               <button type="button" onClick={() => setActiveProject(null)}>
                 关闭
               </button>
             </div>
             <div
               className="gallery-image-wrap"
+              ref={galleryImageWrapRef}
               onPointerDown={handleGalleryPointerStart}
+              onPointerMove={handleGalleryPointerMove}
               onPointerUp={handleGalleryPointerEnd}
-              onPointerCancel={() => {
-                galleryGestureStartRef.current = null;
-              }}
+              onPointerCancel={handleGalleryPointerCancel}
+              onWheel={handleGalleryWheel}
             >
               <img
+                ref={galleryImageRef}
                 src={activeProject.gallery[activeImageIndex].full}
+                onLoad={() => updateGalleryView(galleryZoomRef.current, galleryPanRef.current)}
+                style={{ transform: `translate3d(${galleryPan.x}px, ${galleryPan.y}px, 0) scale(${galleryZoom})` }}
                 alt={`${activeProject.name}项目图 ${activeImageIndex + 1}`}
                 draggable={false}
               />
@@ -631,7 +770,10 @@ function App() {
                     className={index === activeImageIndex ? 'is-active' : ''}
                     key={image.full}
                     type="button"
-                    onClick={() => setActiveImageIndex(index)}
+                    onClick={() => {
+                      resetGalleryView();
+                      setActiveImageIndex(index);
+                    }}
                   >
                     <img src={image.thumb} alt={`${activeProject.name}缩略图 ${index + 1}`} draggable={false} loading="lazy" />
                   </button>

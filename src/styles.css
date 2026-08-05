@@ -1082,6 +1082,7 @@ a {
   padding: 24px 36px;
   user-select: none;
   -webkit-user-select: none;
+  overscroll-behavior: contain;
 }
 
 .gallery-backdrop {
@@ -1165,6 +1166,45 @@ a {
   backdrop-filter: blur(16px);
 }
 
+.gallery-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(5, 6, 7, 0.42);
+  backdrop-filter: blur(16px);
+}
+
+.gallery-zoom-controls button {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.gallery-zoom-controls button:last-child {
+  width: 40px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.gallery-zoom-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.gallery-zoom-level {
+  min-width: 42px;
+  color: rgba(242, 239, 232, 0.7);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .gallery-image-wrap {
   position: relative;
   min-height: 0;
@@ -1175,7 +1215,7 @@ a {
   justify-content: center;
   overflow: hidden;
   background: #050607;
-  touch-action: pan-y;
+  touch-action: none;
   overscroll-behavior: contain;
 }
 
@@ -1190,6 +1230,13 @@ a {
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
+  cursor: grab;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.gallery-image-wrap:active img {
+  cursor: grabbing;
 }
 
 .gallery-arrow {
@@ -1931,7 +1978,9 @@ a {
 
   .gallery-floating-actions {
     top: 12px;
+    left: 12px;
     right: 12px;
+    gap: 6px;
   }
 
   .gallery-count {
@@ -1943,6 +1992,20 @@ a {
   .gallery-floating-actions button {
     min-height: 34px;
     padding: 0 12px;
+  }
+
+  .gallery-zoom-controls {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .gallery-zoom-controls button {
+    width: 28px;
+    min-height: 28px;
+  }
+
+  .gallery-zoom-controls button:last-child {
+    width: 38px;
   }
 
   .gallery-image-wrap img {
