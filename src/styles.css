@@ -1215,6 +1215,7 @@ a {
   justify-content: center;
   overflow: hidden;
   background: #050607;
+  cursor: grab;
   touch-action: none;
   overscroll-behavior: contain;
 }
@@ -1230,12 +1231,11 @@ a {
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
-  cursor: grab;
   transform-origin: center;
   will-change: transform;
 }
 
-.gallery-image-wrap:active img {
+.gallery-image-wrap:active {
   cursor: grabbing;
 }
 

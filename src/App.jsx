@@ -235,12 +235,21 @@ function App() {
   useEffect(() => {
     if (!activeProject) return undefined;
 
+    const resetKeyboardView = () => {
+      galleryZoomRef.current = 1;
+      galleryPanRef.current = { x: 0, y: 0 };
+      setGalleryZoom(1);
+      setGalleryPan({ x: 0, y: 0 });
+    };
+
     const onKeyDown = (event) => {
       if (event.key === 'Escape') setActiveProject(null);
       if (event.key === 'ArrowLeft') {
+        resetKeyboardView();
         setActiveImageIndex((index) => (index - 1 + activeProject.gallery.length) % activeProject.gallery.length);
       }
       if (event.key === 'ArrowRight') {
+        resetKeyboardView();
         setActiveImageIndex((index) => (index + 1) % activeProject.gallery.length);
       }
     };
@@ -254,6 +263,10 @@ function App() {
     return () => {
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
+      galleryPointersRef.current.clear();
+      galleryGestureStartRef.current = null;
+      galleryPanStartRef.current = null;
+      galleryPinchStartRef.current = null;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [activeProject]);
@@ -267,6 +280,10 @@ function App() {
 
   const openProjectGallery = (project) => {
     if (!project.gallery?.length) return;
+    galleryPointersRef.current.clear();
+    galleryGestureStartRef.current = null;
+    galleryPanStartRef.current = null;
+    galleryPinchStartRef.current = null;
     setActiveProject(project);
     setActiveImageIndex(0);
     galleryZoomRef.current = 1;
@@ -703,7 +720,7 @@ function App() {
               <strong className="gallery-count">
                 {activeImageIndex + 1} / {activeProject.gallery.length}
               </strong>
-              <div className="gallery-zoom-controls" aria-label="图片缩放">
+              <div className="gallery-zoom-controls" role="group" aria-label="图片缩放">
                 <button type="button" aria-label="缩小图片" disabled={galleryZoom <= 1} onClick={() => zoomGallery(-0.25)}>
                   -
                 </button>
