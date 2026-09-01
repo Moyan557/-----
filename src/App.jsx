@@ -6,9 +6,10 @@ import {
   heroPhases,
   heroServices,
   heroVideoSrc,
+  loadProjects,
   mediaPath,
   navItems,
-  projects,
+  projects as defaultProjects,
   stats,
   strengths,
 } from './data/portfolio';
@@ -20,6 +21,7 @@ function App() {
   const headerPinnedRef = useRef(false);
   const headerFrameRef = useRef(0);
   const [isHeaderPinned, setIsHeaderPinned] = useState(false);
+  const [projects, setProjects] = useState(defaultProjects);
   const [activeProject, setActiveProject] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [galleryZoom, setGalleryZoom] = useState(1);
@@ -33,6 +35,24 @@ function App() {
   const galleryGestureStartRef = useRef(null);
   const galleryPanStartRef = useRef(null);
   const galleryPinchStartRef = useRef(null);
+  const [galleryRotation, setGalleryRotation] = useState(0);
+  const galleryRotationRef = useRef(0);
+  const galleryBaseSizeRef = useRef({ w: 0, h: 0 });
+  const lastTapRef = useRef(0);
+  const [galleryManualRotation, setGalleryManualRotation] = useState(0);
+  const galleryManualRotationRef = useRef(0);
+  const galleryAutoZoomRef = useRef(1);
+  const [galleryImmersive, setGalleryImmersive] = useState(false);
+  const galleryImmersiveRef = useRef(false);
+  const singleTapTimerRef = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadProjects().then((list) => {
+      if (!cancelled && list.length) setProjects(list);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const root = mainRef.current;
@@ -236,9 +256,7 @@ function App() {
     if (!activeProject) return undefined;
 
     const resetKeyboardView = () => {
-      galleryZoomRef.current = 1;
       galleryPanRef.current = { x: 0, y: 0 };
-      setGalleryZoom(1);
       setGalleryPan({ x: 0, y: 0 });
     };
 
@@ -263,11 +281,37 @@ function App() {
     return () => {
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
+      if (singleTapTimerRef.current) {
+        window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = 0;
+      }
       galleryPointersRef.current.clear();
       galleryGestureStartRef.current = null;
       galleryPanStartRef.current = null;
       galleryPinchStartRef.current = null;
       window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeProject]);
+
+  useEffect(() => {
+    if (!activeProject) return undefined;
+    let resizeTimer = 0;
+    const onOrientationChange = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const img = galleryImageRef.current;
+        if (img && img.naturalWidth) {
+          galleryBaseSizeRef.current = { w: img.offsetWidth, h: img.offsetHeight };
+          autoRotateForOrientation(img.naturalWidth, img.naturalHeight);
+        }
+      }, 120);
+    };
+    window.addEventListener('resize', onOrientationChange);
+    window.addEventListener('orientationchange', onOrientationChange);
+    return () => {
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', onOrientationChange);
+      window.removeEventListener('orientationchange', onOrientationChange);
     };
   }, [activeProject]);
 
@@ -280,31 +324,68 @@ function App() {
 
   const openProjectGallery = (project) => {
     if (!project.gallery?.length) return;
+    if (singleTapTimerRef.current) {
+      window.clearTimeout(singleTapTimerRef.current);
+      singleTapTimerRef.current = 0;
+    }
     galleryPointersRef.current.clear();
     galleryGestureStartRef.current = null;
     galleryPanStartRef.current = null;
     galleryPinchStartRef.current = null;
+    galleryRotationRef.current = 0;
+    galleryManualRotationRef.current = 0;
+    galleryImmersiveRef.current = false;
+    lastTapRef.current = 0;
     setActiveProject(project);
     setActiveImageIndex(0);
     galleryZoomRef.current = 1;
     galleryPanRef.current = { x: 0, y: 0 };
     setGalleryZoom(1);
     setGalleryPan({ x: 0, y: 0 });
+    setGalleryRotation(0);
+    setGalleryManualRotation(0);
+    setGalleryImmersive(false);
   };
 
-  const clampZoom = (value) => Math.min(3, Math.max(1, value));
+  const clampZoom = (value) => {
+    const isRotated = galleryRotationRef.current !== 0;
+    const minZoom = isRotated ? galleryAutoZoomRef.current : 1;
+    return Math.min(5, Math.max(minZoom, value));
+  };
 
-  const clampPan = (value, zoom) => {
+  const clampPan = (value, zoom, rotation = galleryRotationRef.current) => {
     const image = galleryImageRef.current;
     const wrap = galleryImageWrapRef.current;
     if (!image || !wrap) return value;
 
-    const maxX = Math.max(0, (image.offsetWidth * zoom - wrap.clientWidth) / 2);
-    const maxY = Math.max(0, (image.offsetHeight * zoom - wrap.clientHeight) / 2);
+    const base = galleryBaseSizeRef.current;
+    const imgW = base.w || image.offsetWidth;
+    const imgH = base.h || image.offsetHeight;
+    const rotated = rotation === 90 || rotation === 270;
+    const visW = rotated ? imgH : imgW;
+    const visH = rotated ? imgW : imgH;
+    const maxX = Math.max(0, (visW * zoom - wrap.clientWidth) / 2);
+    const maxY = Math.max(0, (visH * zoom - wrap.clientHeight) / 2);
     return {
       x: Math.min(maxX, Math.max(-maxX, value.x)),
       y: Math.min(maxY, Math.max(-maxY, value.y)),
     };
+  };
+
+  const calculateRotationZoom = (rotation) => {
+    const image = galleryImageRef.current;
+    const wrap = galleryImageWrapRef.current;
+    if (!image || !wrap) return 1;
+    const base = galleryBaseSizeRef.current;
+    const imgW = base.w || image.offsetWidth;
+    const imgH = base.h || image.offsetHeight;
+    const rotated = rotation === 90 || rotation === 270;
+    const visW = rotated ? imgH : imgW;
+    const visH = rotated ? imgW : imgH;
+    if (visW <= 0 || visH <= 0) return 1;
+    // contain: 图片完整显示，不裁剪，尽可能大
+    const containZoom = Math.min(wrap.clientWidth / visW, wrap.clientHeight / visH);
+    return containZoom;
   };
 
   const updateGalleryView = (nextZoom, nextPan = galleryPanRef.current) => {
@@ -316,19 +397,83 @@ function App() {
     setGalleryPan(pan);
   };
 
-  const resetGalleryView = () => updateGalleryView(1, { x: 0, y: 0 });
+  const resetGalleryView = () => {
+    const isRotated = galleryRotationRef.current !== 0;
+    const baseZoom = isRotated ? galleryAutoZoomRef.current : 1;
+    updateGalleryView(baseZoom, { x: 0, y: 0 });
+  };
+
+  const autoRotateForOrientation = (naturalW, naturalH) => {
+    const wrap = galleryImageWrapRef.current;
+    if (!wrap || !naturalW || !naturalH) return;
+
+    // 应用自动缩放：用户已放大则保持缩放，否则应用新默认缩放
+    const applyZoom = (newAutoZoom) => {
+      galleryAutoZoomRef.current = newAutoZoom;
+      if (galleryZoomRef.current > newAutoZoom + 0.05) {
+        galleryPanRef.current = { x: 0, y: 0 };
+        setGalleryPan({ x: 0, y: 0 });
+      } else {
+        updateGalleryView(newAutoZoom, { x: 0, y: 0 });
+      }
+    };
+
+    // 用户手动旋转过，保持手动角度
+    if (galleryManualRotationRef.current !== 0) {
+      const rot = galleryManualRotationRef.current;
+      galleryRotationRef.current = rot;
+      setGalleryRotation(rot);
+      applyZoom(calculateRotationZoom(rot));
+      return;
+    }
+
+    // 非手动旋转：保持原始方向，不自动旋转
+    galleryRotationRef.current = 0;
+    setGalleryRotation(0);
+    galleryImmersiveRef.current = false;
+    setGalleryImmersive(false);
+    galleryAutoZoomRef.current = 1;
+    // contain 完整显示，不裁剪；用户已放大则保持缩放
+    if (galleryZoomRef.current > 1.05) {
+      galleryPanRef.current = { x: 0, y: 0 };
+      setGalleryPan({ x: 0, y: 0 });
+    } else {
+      updateGalleryView(1, { x: 0, y: 0 });
+    }
+  };
+
+  const rotateGallery = () => {
+    const next = galleryRotationRef.current === 0 ? 90 : 0;
+    galleryRotationRef.current = next;
+    galleryManualRotationRef.current = next;
+    setGalleryRotation(next);
+    setGalleryManualRotation(next);
+    const immersive = next !== 0;
+    galleryImmersiveRef.current = immersive;
+    setGalleryImmersive(immersive);
+    if (next === 0) {
+      galleryAutoZoomRef.current = 1;
+      updateGalleryView(1, { x: 0, y: 0 });
+    } else {
+      const zoom = calculateRotationZoom(next);
+      galleryAutoZoomRef.current = zoom;
+      updateGalleryView(zoom, { x: 0, y: 0 });
+    }
+  };
 
   const zoomGallery = (amount) => updateGalleryView(galleryZoomRef.current + amount);
 
   const goToPreviousImage = () => {
     if (!activeProject?.gallery?.length) return;
-    resetGalleryView();
+    galleryPanRef.current = { x: 0, y: 0 };
+    setGalleryPan({ x: 0, y: 0 });
     setActiveImageIndex((index) => (index - 1 + activeProject.gallery.length) % activeProject.gallery.length);
   };
 
   const goToNextImage = () => {
     if (!activeProject?.gallery?.length) return;
-    resetGalleryView();
+    galleryPanRef.current = { x: 0, y: 0 };
+    setGalleryPan({ x: 0, y: 0 });
     setActiveImageIndex((index) => (index + 1) % activeProject.gallery.length);
   };
 
@@ -375,8 +520,20 @@ function App() {
       return;
     }
 
-    if (galleryZoomRef.current <= 1 || pointers.size !== 1 || !galleryPanStartRef.current) return;
+    if (pointers.size !== 1 || !galleryPanStartRef.current) return;
     const panStart = galleryPanStartRef.current;
+    const isRotated = galleryRotationRef.current !== 0;
+
+    if (isRotated) {
+      // 旋转状态：单指只做垂直拖动，水平滑动留给切换图片
+      updateGalleryView(galleryZoomRef.current, {
+        x: panStart.pan.x,
+        y: panStart.pan.y + event.clientY - panStart.y,
+      });
+      return;
+    }
+
+    if (galleryZoomRef.current <= 1) return;
     updateGalleryView(galleryZoomRef.current, {
       x: panStart.pan.x + event.clientX - panStart.x,
       y: panStart.pan.y + event.clientY - panStart.y,
@@ -400,10 +557,62 @@ function App() {
     galleryGestureStartRef.current = null;
     galleryPanStartRef.current = null;
     if (!start || start.pointerId !== event.pointerId) return;
-    if (galleryZoomRef.current > 1) return;
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
+    const isTap = Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12;
+
+    if (isTap) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 280 && lastTapRef.current > 0) {
+        // 双击：放大/还原
+        if (singleTapTimerRef.current) {
+          window.clearTimeout(singleTapTimerRef.current);
+          singleTapTimerRef.current = 0;
+        }
+        lastTapRef.current = 0;
+        const isRotated = galleryRotationRef.current !== 0;
+        const baseZoom = isRotated ? galleryAutoZoomRef.current : 1;
+        if (galleryZoomRef.current > baseZoom + 0.05) {
+          updateGalleryView(baseZoom, { x: 0, y: 0 });
+        } else {
+          updateGalleryView(Math.max(baseZoom * 1.8, 2.5), { x: 0, y: 0 });
+        }
+        return;
+      }
+      lastTapRef.current = now;
+      // 单击：仅在旋转状态下切换沉浸式工具栏显隐；竖屏状态不做操作
+      if (galleryRotationRef.current !== 0) {
+        if (singleTapTimerRef.current) window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = window.setTimeout(() => {
+          singleTapTimerRef.current = 0;
+          const next = !galleryImmersiveRef.current;
+          galleryImmersiveRef.current = next;
+          setGalleryImmersive(next);
+        }, 280);
+      }
+      return;
+    }
+
+    const isRotated = galleryRotationRef.current !== 0;
+
+    if (!isRotated && galleryZoomRef.current > 1) {
+      // 竖屏放大状态：边界切换（滑到左右边界后继续滑则切换图片）
+      if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+      const wrap = galleryImageWrapRef.current;
+      const base = galleryBaseSizeRef.current;
+      const imgW = base.w || (galleryImageRef.current?.offsetWidth || 0);
+      const maxX = wrap ? Math.max(0, (imgW * galleryZoomRef.current - wrap.clientWidth) / 2) : 0;
+      const curX = galleryPanRef.current.x;
+      if (deltaX < 0 && curX <= -maxX + 2) {
+        goToNextImage();
+      } else if (deltaX > 0 && curX >= maxX - 2) {
+        goToPreviousImage();
+      }
+      return;
+    }
+
+    // 旋转状态 或 非放大状态：水平滑动直接切换
     if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
 
     if (deltaX < 0) {
@@ -706,7 +915,7 @@ function App() {
 
       {activeProject ? (
         <div
-          className="gallery-modal"
+          className={`gallery-modal${galleryImmersive ? ' is-immersive' : ''}`}
           role="dialog"
           aria-modal="true"
           aria-label={`${activeProject.name}图集预览`}
@@ -721,22 +930,25 @@ function App() {
                 {activeImageIndex + 1} / {activeProject.gallery.length}
               </strong>
               <div className="gallery-zoom-controls" role="group" aria-label="图片缩放">
-                <button type="button" aria-label="缩小图片" disabled={galleryZoom <= 1} onClick={() => zoomGallery(-0.25)}>
+                <button type="button" aria-label="缩小图片" disabled={galleryZoom <= (galleryRotation !== 0 ? galleryAutoZoomRef.current : 1)} onClick={() => zoomGallery(-0.25)}>
                   -
                 </button>
                 <span className="gallery-zoom-level">{Math.round(galleryZoom * 100)}%</span>
-                <button type="button" aria-label="放大图片" disabled={galleryZoom >= 3} onClick={() => zoomGallery(0.25)}>
+                <button type="button" aria-label="放大图片" disabled={galleryZoom >= 5} onClick={() => zoomGallery(0.25)}>
                   +
                 </button>
                 <button
                   type="button"
                   aria-label="重置图片缩放"
-                  disabled={galleryZoom === 1 && galleryPan.x === 0 && galleryPan.y === 0}
+                  disabled={galleryZoom <= (galleryRotation !== 0 ? galleryAutoZoomRef.current + 0.01 : 1.01) && galleryPan.x === 0 && galleryPan.y === 0}
                   onClick={resetGalleryView}
                 >
                   1:1
                 </button>
               </div>
+              <button type="button" aria-label="旋转图片" onClick={rotateGallery}>
+                旋转
+              </button>
               <button type="button" onClick={() => setActiveProject(null)}>
                 关闭
               </button>
@@ -753,8 +965,12 @@ function App() {
               <img
                 ref={galleryImageRef}
                 src={activeProject.gallery[activeImageIndex].full}
-                onLoad={() => updateGalleryView(galleryZoomRef.current, galleryPanRef.current)}
-                style={{ transform: `translate3d(${galleryPan.x}px, ${galleryPan.y}px, 0) scale(${galleryZoom})` }}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  galleryBaseSizeRef.current = { w: img.offsetWidth, h: img.offsetHeight };
+                  autoRotateForOrientation(img.naturalWidth, img.naturalHeight);
+                }}
+                style={{ transform: `translate3d(${galleryPan.x}px, ${galleryPan.y}px, 0) scale(${galleryZoom}) rotate(${galleryRotation}deg)` }}
                 alt={`${activeProject.name}项目图 ${activeImageIndex + 1}`}
                 draggable={false}
               />
@@ -788,7 +1004,8 @@ function App() {
                     key={image.full}
                     type="button"
                     onClick={() => {
-                      resetGalleryView();
+                      galleryPanRef.current = { x: 0, y: 0 };
+                      setGalleryPan({ x: 0, y: 0 });
                       setActiveImageIndex(index);
                     }}
                   >

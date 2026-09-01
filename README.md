@@ -48,58 +48,64 @@ Initial portfolio website
 9. 回到 `Actions` 页面，等待 `Deploy Portfolio` 执行完成。
 10. 完成后，Pages 会显示网站地址。
 
-## 修改文字内容
+## 修改项目文字（无需改代码）
 
-主要内容集中在：
+所有项目的名称、说明、图片数量都在这个文件里：
+
+```text
+public/projects.json
+```
+
+用记事本或 VS Code 打开，直接修改对应的 `name`、`meta`、`desc`、`count` 字段，保存后重新构建即可。
+
+设计师个人信息（姓名、邮箱、电话等）和首页文字仍在：
 
 ```text
 src/data/portfolio.js
 ```
 
-可以修改：
+## 一键添加新项目（推荐）
 
-- 设计师姓名、邮箱、电话、城市
-- 首页服务文字
-- 导航文字
-- 项目名称、项目说明、项目数量
-- 个人优势卡片
-
-## 新增精选项目图集
-
-1. 准备一个原图文件夹，例如：
+1. 准备一个原图文件夹，把项目照片放进去（jpg/jpeg/png 均可），例如：
 
 ```text
 C:\Users\17364\Desktop\个人作品\新项目
 ```
 
-2. 运行优化脚本，其中 `new-project` 是英文目录名：
+2. 运行一键添加脚本（自动优化图片 + 更新配置）：
+
+```powershell
+pnpm run add:project -- -Source "C:\Users\17364\Desktop\个人作品\新项目" -Slug "new-villa" -Name "新项目名称" -Meta "项目类型 / 面积" -Desc "项目简介" -Tone "project-a"
+```
+
+参数说明：
+
+| 参数 | 说明 | 示例 |
+|---|---|---|
+| `-Source` | 原图文件夹路径（必填） | `C:\Users\...\新项目` |
+| `-Slug` | 英文标识，用于文件夹和网址（必填） | `new-villa` |
+| `-Name` | 项目中文名称（必填） | `云栖山庄` |
+| `-Meta` | 副标题 | `500㎡ / 独栋别墅` |
+| `-Desc` | 项目简介 | `以温润木色...` |
+| `-Tone` | 配色主题，可选 `project-a`~`project-d` | `project-d` |
+
+3. 脚本会自动完成：
+   - 优化图片（生成 full 大图、thumb 缩略图、cover 封面）
+   - 更新 `public/projects.json`（自动统计图片数量）
+
+4. 重新构建发布：
+
+```powershell
+pnpm run build
+```
+
+## 仅优化图片（不更新配置）
+
+如果只需要生成优化后的图片，手动管理配置：
 
 ```powershell
 pnpm run optimize:project -- -Source "C:\Users\17364\Desktop\个人作品\新项目" -Slug "new-project"
 ```
-
-3. 脚本会生成：
-
-```text
-public/media/portfolio/new-project/cover.jpg
-public/media/portfolio/new-project/full/image-01.jpg
-public/media/portfolio/new-project/thumb/image-01.jpg
-```
-
-4. 打开 `src/data/portfolio.js`，在 `projects` 里新增：
-
-```js
-{
-  name: '新项目名称',
-  meta: '项目类型 / 面积',
-  desc: '项目简介。',
-  tone: 'project-d',
-  image: mediaPath('media/portfolio/new-project/cover.jpg'),
-  gallery: createGallery('new-project', 12),
-}
-```
-
-把 `12` 改成这个项目实际图片数量。
 
 ## 原始素材
 

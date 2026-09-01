@@ -1333,6 +1333,55 @@ a {
   -webkit-user-drag: none;
 }
 
+/* 沉浸式查看：旋转后隐藏工具栏、全屏显示图片 */
+.gallery-modal.is-immersive {
+  padding: 0;
+  background: #000;
+}
+
+.gallery-modal.is-immersive .gallery-backdrop {
+  background: #000;
+  backdrop-filter: none;
+}
+
+.gallery-modal.is-immersive .gallery-viewer {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: none;
+  grid-template-rows: 1fr;
+}
+
+.gallery-modal.is-immersive .gallery-floating-actions {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.gallery-modal.is-immersive .gallery-footer {
+  display: none;
+}
+
+.gallery-modal.is-immersive .gallery-arrow {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.gallery-modal.is-immersive .gallery-image-wrap {
+  padding: 0;
+  background: #000;
+}
+
+.gallery-modal.is-immersive.show-ui .gallery-floating-actions,
+.gallery-modal.is-immersive.show-ui .gallery-arrow {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .strengths {
   background: transparent;
 }
@@ -1966,14 +2015,15 @@ a {
   }
 
   .gallery-modal {
-    padding: 12px;
+    padding: 0;
   }
 
   .gallery-viewer {
     width: 100%;
-    height: calc(100svh - 24px);
+    height: 100svh;
     max-height: none;
-    border-radius: 8px;
+    border: 0;
+    border-radius: 0;
   }
 
   .gallery-floating-actions {
@@ -1981,6 +2031,8 @@ a {
     left: 12px;
     right: 12px;
     gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .gallery-count {
@@ -2014,7 +2066,7 @@ a {
   }
 
   .gallery-image-wrap {
-    padding: 48px 46px 12px;
+    padding: 44px 0 0;
   }
 
   .gallery-arrow {
@@ -2042,7 +2094,7 @@ a {
 
   .gallery-footer {
     display: block;
-    padding: 12px;
+    padding: 8px;
   }
 
   .gallery-footer p {

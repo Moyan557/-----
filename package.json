@@ -7,7 +7,13 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "optimize:project": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/optimize-project.ps1"
+    "optimize:project": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/optimize-project.ps1",
+    "add:project": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/add-project.ps1",
+    "deploy": "node tools/qiniu-upload/deploy.js",
+    "deploy:no-build": "node tools/qiniu-upload/deploy.js --no-build",
+    "deploy:force": "node tools/qiniu-upload/deploy.js --force",
+    "deploy:vercel": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-vercel.ps1",
+    "deploy:cloudflare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-cloudflare.ps1"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

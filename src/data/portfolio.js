@@ -11,8 +11,8 @@ export const designer = {
 };
 
 export const stats = [
-  { value: '8+', label: '年高端私宅经验' },
-  { value: '500-800㎡', label: '主力别墅与大宅尺度' },
+  { value: '10+', label: '年高端私宅经验' },
+  { value: '300-800㎡', label: '主力别墅与大宅尺度' },
   { value: '20+', label: '宁波本地落地楼盘' },
   { value: '1:1', label: '效果图到实景还原目标' },
 ];
@@ -68,6 +68,31 @@ export const projects = [
     gallery: createGallery('yihedongfang', 19),
   },
 ];
+
+/**
+ * 从 public/projects.json 异步加载项目列表。
+ * 编辑 projects.json 或运行 add-project 脚本后，重新构建即可生效。
+ * 加载失败时回退到上方静态 projects。
+ */
+export async function loadProjects() {
+  try {
+    const res = await fetch(mediaPath('projects.json'), { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const list = await res.json();
+    if (!Array.isArray(list) || list.length === 0) throw new Error('empty list');
+    return list.map((item) => ({
+      name: item.name || '未命名项目',
+      meta: item.meta || '',
+      desc: item.desc || '',
+      tone: item.tone || 'project-a',
+      image: mediaPath(`media/portfolio/${item.slug}/cover.jpg`),
+      gallery: createGallery(item.slug, item.count || 0),
+    }));
+  } catch (err) {
+    console.warn('[portfolio] projects.json 加载失败，使用静态配置:', err.message);
+    return projects;
+  }
+}
 
 export const strengths = [
   {
